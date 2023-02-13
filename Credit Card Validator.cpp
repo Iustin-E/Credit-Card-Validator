@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <ctime>
 
 using namespace std;
 
@@ -16,6 +17,13 @@ void printDevider(int len = 30) {
         cout << '-';
     }
     cout << '\n';
+}
+
+bool isDigit(char a) {
+    if (a >= '0' && a <= '9') {
+        return true;
+    }
+    return false;
 }
 
 bool isCardNumberValid(string cardnumber) {
@@ -55,6 +63,28 @@ string formatCardNumber(string temporaryInput) {
     return formatedInput;
 }
 
+bool isExpirDateValid(string input) {
+    if (input.size() == 4 && isDigit(input[0]) && input[1] == '/' && isDigit(input[2]) && isDigit(input[3])) {
+        input.insert(input.begin(), '0');
+    }
+    if ( input.size() != 5 || (input.size() != 4 && input[0] == 0)) {
+        return false;
+    }
+    if (isDigit(input[0]) && isDigit(input[1]) && isDigit(input[3]) && isDigit(input[4]) && input[2] == '/') {
+        int expirMon = ((int)input[0] - '0') * 10 + ((int)input[1]-'0');
+        int expirYear = ((int)input[3] - '0') * 10 + ((int)input[4]-'0');
+        time_t curr_time = time(nullptr);
+        struct tm converted_time;
+        localtime_s(&converted_time, &curr_time);
+        // the localtime func returns number of years passed till 1970 - unix timestamp
+        int currYear = converted_time.tm_year - 100;
+        int currMon = converted_time.tm_mon;
+        if (currYear <= expirYear && currMon <= expirMon)
+            return true;
+        return false;
+    }
+    return false;
+}
 
 
 // MAIN
@@ -75,20 +105,27 @@ int main()
             string input;
             cin.ignore();
             getline(cin, input);
+            // CARD SKIPPER [DEBUG]
+            if (input == "-")
+                input = "5120415296389632";
             input = formatCardNumber(input);
             cout << "FORMATED CARD NUMBER: " << input << '\n';
             while (!isCardNumberValid(input)) {
                 cout << "INVALID: " << input << '\n';
+                cout << "Credit card number: ";
                 getline(cin, input);
                 input = formatCardNumber(input);
+                cout << "FORMATED CARD NUMBER: " << input << '\n';
             }
-            cout << "VALID: " << input << '\n';
-            // temporaryInput trebuie formatat si introdus in card.number
-            
+            //cout << "VALID: " << input << '\n';
 
-            cout << "Expiration date: ";
-
-            
+            cout << "Expiration date(MM/YY): ";
+            getline(cin, input);
+            while (!isExpirDateValid(input)) {
+                cout << "Card NOT valid!\n" << "Expiration date(MM/YY): ";
+                getline(cin, input);
+            }
+            cout << "Card is valid!\n";
         }
         else if (n == 2) {
             cout << "How it works:\n";
