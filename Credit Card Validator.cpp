@@ -28,16 +28,18 @@ int menu_select(string title, vector<string> options) {
         cout << '[' << i << ']' << options[i - 1] << '\n';
     }
     int input;
-    cin >> input;
-    while (!cin) { // verifies if the input fails
+    while (true) {
+        cin >> input;
+        if(!cin) { // verifies if the input fails
         cout << "Incorrect input!\n";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cin >> input;
-    }
-    while (input <= 0 || (input > options.size())) {
-        cout << "Option out of range!\n";
-        cin >> input;
+        continue;
+        }
+        if (input <= 0 || (input > options.size())) {
+            cout << "Option out of range!\n";
+        }
+        else break;
     }
     return input;
 }
@@ -143,7 +145,6 @@ int main()
             cout << "Credit card's owner name: ";
             cin.ignore();
             getline(cin, curr_card.owner_name);
-            printDevider();
 
             cout << "Credit card number: ";
             string input;
@@ -190,20 +191,18 @@ int main()
                 }
             }
             else if (n2 == 2) {
-
-            }
-            else if (n2 == 3) {
-
+                // CHECK CARD INFO:
+                // INPUTED DATA
+                // VISA/MC/AMEXPR
+                // SAVED OR NOT IN DATABASE
             }
         }
         else if (n == 2) {
             cout << "How it works:\n";
+            // INFO ABOUT HOW IT WORKS
         }
         else if (n == 3) {
             exit(0);
-        }
-        else {
-            cout << "Invalid option. Try again\n";
         }
         printDevider();
     }
