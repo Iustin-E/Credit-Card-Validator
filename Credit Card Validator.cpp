@@ -3,14 +3,25 @@
 #include <string>
 #include <vector>
 #include <ctime>
+#include <sstream>
 
 using namespace std;
+
+// ENABLE/DISABLE FUNCTIONS
+#define CARD_DUPLICATE_PROOF 1
+#define CARD_NUMBER_HAS_TO_BE_VALID 0
+
+// DATABASE INFO
+#define DATABASE_FILE "card_database.txt"
+#define DATABASE_COLUMNS 4
+#define DATABASE_DELIMITER " : "
+#define DATABASE_DELIMITER_SIZE 3
 
 // VARIABLES
 int n;
 struct Card {
     string number; // a string with the numbers of the card - no spaces
-    unsigned short expirMonth = 0, expirYear = 0, CVV = 0;
+    short expirMonth = 0, expirYear = 0;
     string owner_name;
 };
 
@@ -24,8 +35,8 @@ void printDevider(int len = 30) {
 
 int menu_select(string title, vector<string> options) {
     cout << title << '\n';
-    for (int i = 1; i <= options.size(); i++) {
-        cout << '[' << i << ']' << options[i - 1] << '\n';
+    for (size_t i = 1; i <= options.size(); i++) {
+        cout << '[' << i << ']' << ' ' << options[i - 1] << '\n';
     }
     int input;
     while (true) {
@@ -52,6 +63,8 @@ bool isDigit(char a) {
 }
 
 bool isCardNumberValid(string cardnumber) {
+    if (!CARD_NUMBER_HAS_TO_BE_VALID)
+        return true;
     int i = 0;
     // 16 for Visa and MC | 15 for AmExpr
     if (cardnumber.size() != 16 && cardnumber.size() != 15) {
@@ -89,10 +102,7 @@ string formatCardNumber(string temporaryInput) {
 }
 
 bool isExpirDateValid(string input) {
-    if (input.size() == 4 && isDigit(input[0]) && input[1] == '/' && isDigit(input[2]) && isDigit(input[3])) {
-        input.insert(input.begin(), '0');
-    }
-    if ( input.size() != 5 || (input.size() != 4 && input[0] == 0)) {
+    if ( input.size() != 5) {
         return false;
     }
     if (isDigit(input[0]) && isDigit(input[1]) && isDigit(input[3]) && isDigit(input[4]) && input[2] == '/') {
@@ -119,9 +129,30 @@ int save_card(string database_name, Card card) {
     // Varify if the card is under another name
     ofstream file;
     file.open(database_name, std::ios_base::app);
-    file << card.owner_name << " : " << card.number << ' ' << card.expirMonth << ' ' << card.expirYear << '\n';
+    file << card.owner_name << DATABASE_DELIMITER << card.number << DATABASE_DELIMITER << card.expirMonth << '/' << card.expirYear << '\n';
     file.close();
     return 0;
+}
+
+bool isInDatabase(string database_name, Card card) {
+    if(!CARD_DUPLICATE_PROOF)
+        return false;
+    ifstream file(database_name);
+    string line;
+    while (getline(file, line)) {
+        cout << line << endl;
+        string owner, card_number, expirMon, expirYear;
+        // START ESTE AIUREA - DA CV NR MARE 
+        size_t start = line.find(DATABASE_DELIMITER);
+        line.erase(0, start + DATABASE_DELIMITER_SIZE);
+        start = line.find(DATABASE_DELIMITER);
+        card_number = line.substr(0, start);
+        if (card_number == card.number) {
+            return true;
+        }
+    }
+    file.close();
+    return false;
 }
 
 
@@ -166,35 +197,45 @@ int main()
 
             cout << "Expiration date(MM/YY): ";
             getline(cin, input);
+            if (input.size() == 4)
+                input.insert(input.begin(), '0');
             while (!isExpirDateValid(input)) {
                 cout << "Card NOT valid!\n" << "Expiration date(MM/YY): ";
                 getline(cin, input);
             }
             cout << "Card is valid!\n";
-            curr_card.expirMonth = ((int)input[0] - '0') * 10 + ((int)input[1] - '0');
-            curr_card.expirYear = ((int)input[3] - '0') * 10 + ((int)input[4] - '0');
+            curr_card.expirMonth = ((int)(input[0] - '0')) * 10 + ((int)(input[1] - '0'));
+            curr_card.expirYear = ((int)(input[3] - '0')) * 10 + ((int)(input[4] - '0'));
 
             // SAVE IN FILE
-            printDevider();
-            vector<string> card_options;
-            card_options.push_back("Save card in database");
-            card_options.push_back("Check card info");
-            card_options.push_back("Exit");
-            int n2 = menu_select("CHOOSE OPTION", card_options);
-            if (n2 == 1) {
-                if (save_card("card_database.txt", curr_card)) {
-                    cout << "Couldn't save the card!\n";
+            while (true) {
+                printDevider();
+                vector<string> card_options;
+                card_options.push_back("Save card in database");
+                card_options.push_back("Check card info");
+                card_options.push_back("Exit");
+                int n2 = menu_select("CHOOSE OPTION", card_options);
+                if (n2 == 1) {
+                    if (isInDatabase(DATABASE_FILE, curr_card)) {
+                        cout << "Card already in database\n";
+                        continue;
+                    }
+                    if (save_card(DATABASE_FILE, curr_card)) {
+                        cout << "Couldn't save the card!\n";
+                    }
+                    else
+                    {
+                        cout << "Card saved successfully!\n";
+                    }
+                }
+                else if (n2 == 2) {
+                    // CHECK CARD INFO:
+                    // INPUTED DATA
+                    // VISA/MC/AMEXPR
+                    // SAVED OR NOT IN DATABASE
                 }
                 else
-                {
-                    cout << "Card saved successfully!\n";
-                }
-            }
-            else if (n2 == 2) {
-                // CHECK CARD INFO:
-                // INPUTED DATA
-                // VISA/MC/AMEXPR
-                // SAVED OR NOT IN DATABASE
+                    break;
             }
         }
         else if (n == 2) {
