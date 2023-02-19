@@ -127,7 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Credit Card Validator.cpp" />
+    <ClCompile Include="CreditCardValidator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

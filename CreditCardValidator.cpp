@@ -44,7 +44,6 @@ void setupMenus() {
         card_options.push_back("Exit");
         start_menu_options.push_back("Credit card operations");
         start_menu_options.push_back("Database operations");
-        start_menu_options.push_back("How it works");
         start_menu_options.push_back("Quit");
         database_operations.push_back("Print current database");
         database_operations.push_back("Modity entry from database");
@@ -203,13 +202,13 @@ void deleteDatabase(std::string database) {
 Card stringToCard(std::string line) {
     Card card;
     size_t pos;
-    pos = line.find(DATABASE_DELIMITER) + DATABASE_DELIMITER_SIZE;
+    pos = line.find(DATABASE_DELIMITER);
     card.owner_name = line.substr(0, pos);
-    line.erase(0, pos);
+    line.erase(0, pos+DATABASE_DELIMITER_SIZE);
 
-    pos = line.find(DATABASE_DELIMITER) + DATABASE_DELIMITER_SIZE;
+    pos = line.find(DATABASE_DELIMITER);
     card.number = line.substr(0, pos);
-    line.erase(0, pos);
+    line.erase(0, pos+DATABASE_DELIMITER_SIZE);
 
     card.expirMonth = (int)(line[0] - '0') * 10 + (int)(line[1] - '0');
     card.expirYear = (int)(line[3] - '0') * 10 + (int)(line[4] - '0');
@@ -407,16 +406,6 @@ int main()
                 }
                 else break;
             }
-        }
-        // HOW IT WORKS
-        else if(n == 3)
-        {
-            std::cout << "HOW IT WORKS\n";
-            std::cout << "You can insert a fictional credit card's information into the system\nand it will verity if it is a valid credit card.\n\nYou can find more about this project on the README file on: \ngithub.com/Iustin-E/Credit-Card-Validator.git\n";
-            std::vector<std::string> how_options;
-            how_options.push_back("Exit");
-            int n = menu_select("", how_options);
-            break;
         }
         // EXIT
         else exit(0);
