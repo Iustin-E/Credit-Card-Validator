@@ -7,7 +7,7 @@
 
 // ENABLE/DISABLE FUNCTIONS
 #define CARD_DUPLICATE_PROOF 1
-#define CARD_NUMBER_HAS_TO_BE_VALID 1
+#define CARD_NUMBER_HAS_TO_BE_VALID 0
 
 // DATABASE INFO
 #define DATABASE_FILE "card_database.txt"
@@ -27,6 +27,7 @@ std::vector<std::string> start_menu_options;
 std::vector<std::string> database_operations;
 std::vector<std::string> delete_database_options;
 std::vector<std::string> operations_on_card;
+std::vector<std::string> modify_card_options;
 
 
 // FUNCTIONS
@@ -47,12 +48,15 @@ void setupMenus() {
         start_menu_options.push_back("Quit");
         database_operations.push_back("Modity entry from database");
         database_operations.push_back("Delete DATABASE");
-        database_operations.push_back("Return to ...");
+        database_operations.push_back("Return to Main Menu");
         delete_database_options.push_back("YES, delete database");
         delete_database_options.push_back("NO, go back");
         operations_on_card.push_back("Modity card");
         operations_on_card.push_back("Delete card from database");
         operations_on_card.push_back("Return to cards page");
+        modify_card_options.push_back("Owner's name");
+        modify_card_options.push_back("Card number");
+        modify_card_options.push_back("Return to Main Menu");
     }
 
 int menu_select(std::string title, std::vector<std::string> options) {
@@ -194,6 +198,46 @@ void deleteDatabase(std::string database) {
         file.close();
     }
 
+Card stringToCard(std::string line) {
+    Card card;
+    size_t pos;
+    pos = line.find(DATABASE_DELIMITER) + DATABASE_DELIMITER_SIZE;
+    card.owner_name = line.substr(0, pos);
+    line.erase(0, pos);
+
+    pos = line.find(DATABASE_DELIMITER) + DATABASE_DELIMITER_SIZE;
+    card.number = line.substr(0, pos);
+    line.erase(0, pos);
+
+    card.expirMonth = (int)(line[0] - '0') * 10 + (int)(line[1] - '0');
+    card.expirYear = (int)(line[3] - '0') * 10 + (int)(line[4] - '0');
+
+    return card;
+}
+
+Card deleteAndReturnNthCard(std::string database, size_t n) {
+    std::ifstream file(database);
+    std::ofstream temp("tempfile.txt");
+    Card card;
+    size_t cnt = 0;
+    std::string line;
+    while (getline(file, line)) {
+        if (cnt == n-1) {
+            card = stringToCard(line);
+        }
+        else
+            temp << line << '\n';
+        cnt++;
+    }
+    temp.close();
+    file.close();
+    remove(database.c_str());
+    if (rename("tempfile.txt", database.c_str())) {
+        std::cout << "ERROR RENAMING!\n";
+    }
+    return card;
+}
+
 // MAIN
 int main()
 {
@@ -292,16 +336,42 @@ int main()
                 std::vector<std::string> select_card = loadCards(DATABASE_FILE);
                 // SELECT CARD
                 n = menu_select("SELECT CARD", select_card);
-                Card selected_card = getNthCard(DATABASE_FILE, n);
+                Card selected_card = deleteAndReturnNthCard(DATABASE_FILE, n);
                 // SELECT OPERATION FOR THE SELECTED CARD
                 n = menu_select("SELECT OPERATION for the selected card", operations_on_card);
                 if (n == 1) // Modify card
                 {
-
+                    while (true) {
+                        n = menu_select("Select what you want to modify", modify_card_options);
+                        std::string newStr;
+                        if (n == 1) { // Modify name
+                            std::cout << "Enter new owner name: ";
+                            getline(std::cin, newStr);
+                            selected_card.owner_name = newStr;
+                        }
+                        else if (n == 2) { // Modify number 
+                            std::cout << "Enter new credit card number\n";
+                            std::cin.ignore();
+                            getline(std::cin, newStr);
+                            newStr = formatCardNumber(newStr);
+                            while(!isCardNumberValid(newStr)) {
+                                getline(std::cin, newStr);
+                                if (newStr == "q")
+                                    break;
+                                std::cout << "Invalid! Enter \"q\" to leave\n";
+                            }
+                            if(newStr != "q")
+                                selected_card.number = newStr;
+                        }
+                        else if (n == 3) { // Leave
+                            break;
+                        }
+                    }
+                    save_card(DATABASE_FILE, selected_card);
                 }
                 else if (n == 2) // Delete from database
                 {
-
+                    continue;
                 }
                 else break;
             }
