@@ -46,8 +46,10 @@ void setupMenus() {
         start_menu_options.push_back("Database operations");
         start_menu_options.push_back("How it works");
         start_menu_options.push_back("Quit");
+        database_operations.push_back("Print current database");
         database_operations.push_back("Modity entry from database");
         database_operations.push_back("Delete DATABASE");
+        database_operations.push_back("Restore to base test database");
         database_operations.push_back("Return to Main Menu");
         delete_database_options.push_back("YES, delete database");
         delete_database_options.push_back("NO, go back");
@@ -238,6 +240,16 @@ Card deleteAndReturnNthCard(std::string database, size_t n) {
     return card;
 }
 
+void printDatabase(std::string database) {
+    // TODO print on columns and rows 
+    std::ifstream file(database);
+    std::string line;
+    while (getline(file, line)) {
+        std::cout << line << '\n';
+    }
+    file.close();
+}
+
 // MAIN
 int main()
 {
@@ -330,63 +342,71 @@ int main()
         // DATABASE OPERATIONS
         else if (n == 2) // DATABASE OPERATIONS
         {
-            n = menu_select("DATABASE OPERATIONS", database_operations);
-            if (n == 1) // MODIFY ENTRY
-            {
-                std::vector<std::string> select_card = loadCards(DATABASE_FILE);
-                // SELECT CARD
-                n = menu_select("SELECT CARD", select_card);
-                Card selected_card = deleteAndReturnNthCard(DATABASE_FILE, n);
-                // SELECT OPERATION FOR THE SELECTED CARD
-                n = menu_select("SELECT OPERATION for the selected card", operations_on_card);
-                if (n == 1) // Modify card
+            while (true) {
+                n = menu_select("DATABASE OPERATIONS", database_operations);
+                if (n == 1) // PRINT DATABASE
+                    printDatabase(DATABASE_FILE);
+                else if (n == 2) // MODIFY ENTRY
                 {
-                    while (true) {
-                        n = menu_select("Select what you want to modify", modify_card_options);
-                        std::string newStr;
-                        if (n == 1) { // Modify name
-                            std::cout << "Enter new owner name: ";
-                            getline(std::cin, newStr);
-                            selected_card.owner_name = newStr;
-                        }
-                        else if (n == 2) { // Modify number 
-                            std::cout << "Enter new credit card number\n";
-                            std::cin.ignore();
-                            getline(std::cin, newStr);
-                            newStr = formatCardNumber(newStr);
-                            while(!isCardNumberValid(newStr)) {
+                    std::vector<std::string> select_card = loadCards(DATABASE_FILE);
+                    // SELECT CARD
+                    n = menu_select("SELECT CARD", select_card);
+                    Card selected_card = deleteAndReturnNthCard(DATABASE_FILE, n);
+                    // SELECT OPERATION FOR THE SELECTED CARD
+                    n = menu_select("SELECT OPERATION for the selected card", operations_on_card);
+                    if (n == 1) // Modify card
+                    {
+                        while (true) {
+                            n = menu_select("Select what you want to modify", modify_card_options);
+                            std::string newStr;
+                            if (n == 1) { // Modify name
+                                std::cout << "Enter new owner name: ";
+                                std::cin.ignore();
                                 getline(std::cin, newStr);
-                                if (newStr == "q")
-                                    break;
-                                std::cout << "Invalid! Enter \"q\" to leave\n";
+                                selected_card.owner_name = newStr;
                             }
-                            if(newStr != "q")
-                                selected_card.number = newStr;
+                            else if (n == 2) { // Modify number 
+                                std::cout << "Enter new credit card number\n";
+                                std::cin.ignore();
+                                getline(std::cin, newStr);
+                                newStr = formatCardNumber(newStr);
+                                while (!isCardNumberValid(newStr)) {
+                                    getline(std::cin, newStr);
+                                    if (newStr == "q")
+                                        break;
+                                    std::cout << "Invalid! Enter \"q\" to leave\n";
+                                }
+                                if (newStr != "q")
+                                    selected_card.number = newStr;
+                            }
+                            else if (n == 3) { // Leave
+                                break;
+                            }
                         }
-                        else if (n == 3) { // Leave
-                            break;
-                        }
+                        save_card(DATABASE_FILE, selected_card);
                     }
-                    save_card(DATABASE_FILE, selected_card);
+                    else if (n == 2) // Delete from database
+                    {
+                        continue;
+                    }
+                    else break;
                 }
-                else if (n == 2) // Delete from database
+
+                else if (n == 3)  // DELETE DATABSE
                 {
+                    int n = menu_select("ARE YOU SURE YOU WANT TO DELETE THE DATABASE?", delete_database_options);
+                    if (n == 1) { // YES
+                        deleteDatabase(DATABASE_FILE);
+                        std::cout << "Database DELETED!\n";
+                    }
+                    else if (n == 2) // NO
+                        continue;
+                }
+                else if (n == 4) { // TODO restore to base database
                     continue;
                 }
                 else break;
             }
-        
-            else if (n == 2)  // DELETE DATABSE
-            {
-                int n = menu_select("ARE YOU SURE YOU WANT TO DELETE THE DATABASE?", delete_database_options);
-                if (n == 1) { // YES
-                    deleteDatabase(DATABASE_FILE);
-                    std::cout << "Database DELETED!\n";
-                }
-                else if (n == 2) // NO
-                    continue;
-            }
-            else break;
         }
         // HOW IT WORKS
         else if(n == 3)
