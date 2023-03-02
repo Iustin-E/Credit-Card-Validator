@@ -1,5 +1,5 @@
 # Summary
-This project is about building a program that can verify and show the details of a credit card by it's details. 
+This project is about building a program that can verify and show the details of a credit card by the information you provide.
 Some of the options are not completed. The project is still Work in Progress. 
 # How to run
 This program doesn't use any non-standard libraries, so you don't have to install anything before running.
