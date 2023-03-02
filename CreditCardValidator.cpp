@@ -4,10 +4,12 @@
 #include <vector>
 #include <ctime>
 #include <sstream>
+#include <limits.h>
+#include <stddef.h>
 
 // ENABLE/DISABLE FUNCTIONS
 #define CARD_DUPLICATE_PROOF 1
-#define CARD_NUMBER_HAS_TO_BE_VALID 0
+#define CARD_NUMBER_HAS_TO_BE_VALID 1
 
 // DATABASE INFO
 #define DATABASE_FILE "card_database.txt"
